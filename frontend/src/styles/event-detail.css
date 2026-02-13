@@ -1,0 +1,193 @@
+/* Event Detail Styles */
+.event-detail-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px 40px;
+}
+
+.event-header {
+  margin-bottom: 40px;
+  border-radius: 10px;
+  overflow: hidden;
+  background-color: white;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.event-banner {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+  background-color: #f0f0f0;
+}
+
+.event-header-info {
+  padding: 30px;
+}
+
+.event-header-info h1 {
+  font-size: 32px;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.category-badge {
+  display: inline-block;
+  background-color: #667eea;
+  color: white;
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 14px;
+}
+
+.event-content {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 30px;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .event-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+.event-main {
+  background-color: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.event-main h3 {
+  font-size: 20px;
+  margin: 20px 0 15px;
+  color: #333;
+}
+
+.event-main h3:first-child {
+  margin-top: 0;
+}
+
+.event-main p {
+  color: #666;
+  line-height: 1.8;
+  margin-bottom: 20px;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.detail-item strong {
+  color: #333;
+}
+
+.detail-item p {
+  margin-bottom: 0;
+  color: #666;
+}
+
+.ticket-sidebar {
+  position: sticky;
+  top: 100px;
+}
+
+.ticket-box {
+  background-color: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.ticket-box h3 {
+  margin-bottom: 20px;
+  font-size: 20px;
+  color: #333;
+}
+
+.price {
+  font-size: 28px;
+  font-weight: bold;
+  color: #667eea;
+  margin-bottom: 10px;
+}
+
+.available {
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #555;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+.price-summary {
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 5px;
+  margin: 20px 0;
+}
+
+.price-summary p {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  color: #666;
+}
+
+.price-summary p strong {
+  color: #333;
+}
+
+.btn-purchase {
+  width: 100%;
+  padding: 12px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn-purchase:hover:not(:disabled) {
+  background-color: #218838;
+}
+
+.btn-purchase:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.login-prompt {
+  text-align: center;
+  margin-top: 15px;
+  color: #666;
+}
+
+.login-prompt a {
+  color: #667eea;
+  font-weight: 600;
+}

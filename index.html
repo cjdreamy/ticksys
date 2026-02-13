@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Ticketing System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* Navbar */
+        nav {
+            background-color: #333;
+            color: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+
+        .nav-menu a {
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .nav-menu a:hover {
+            background-color: #555;
+        }
+
+        .nav-menu a.active {
+            background-color: #007bff;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Sections */
+        section {
+            display: none;
+            padding: 40px 0;
+            min-height: calc(100vh - 100px);
+        }
+
+        section.active {
+            display: block;
+        }
+
+        h2 {
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        h3 {
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button.btn-danger {
+            background-color: #dc3545;
+        }
+
+        button.btn-danger:hover {
+            background-color: #c82333;
+        }
+
+        button.btn-success {
+            background-color: #28a745;
+        }
+
+        button.btn-success:hover {
+            background-color: #218838;
+        }
+
+        /* Messages */
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+        }
+
+        /* Auth Page */
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: calc(100vh - 100px);
+        }
+
+        .auth-card {
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .auth-card h2 {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .auth-card p {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .auth-card a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Events Grid */
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .event-card {
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .event-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .event-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+        }
+
+        .event-info {
+            padding: 15px;
+        }
+
+        .event-info h3 {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+        }
+
+        .event-category {
+            display: inline-block;
+            background-color: #667eea;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .event-meta {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .event-price {
+            font-size: 18px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .event-available {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 15px;
+        }
+
+        .btn-view {
+            background-color: #667eea;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+            width: 100%;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn-view:hover {
+            background-color: #5568d3;
+        }
+
+        /* Filters */
+        .filters {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .filters {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Event Detail */
+        .event-detail {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .event-detail h3 {
+            margin-top: 20px;
+        }
+
+        .event-detail h3:first-child {
+            margin-top: 0;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .detail-item strong {
+            color: #333;
+        }
+
+        .detail-item {
+            color: #666;
+        }
+
+        .ticket-box {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 30px;
+        }
+
+        .ticket-box h3 {
+            margin-top: 0;
+        }
+
+        .price-display {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .price-summary {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        .price-summary p {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            color: #666;
+        }
+
+        /* Tickets List */
+        .tickets-list {
+            display: grid;
+            gap: 20px;
+        }
+
+        .ticket-item {
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #667eea;
+        }
+
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .ticket-header h3 {
+            margin: 0;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-confirmed {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-cancelled {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .ticket-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .ticket-details {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .ticket-details p {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .ticket-details strong {
+            color: #333;
+        }
+
+        /* Events Management Table */
+        .events-table {
+            overflow-x: auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background-color: #f9f9f9;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #ddd;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            color: #666;
+        }
+
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            margin: 0 5px;
+            border: none;
+            border-radius: 5px;
+            font-size: 12px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .btn-delete {
+            background-color: #dc3545;
+        }
+
+        .btn-delete:hover {
+            background-color: #c82333;
+        }
+
+        /* Form Section */
+        .form-section {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-row.full {
+            grid-template-columns: 1fr;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state h3 {
+            color: #999;
+        }
+
+        .btn-create {
+            background-color: #667eea;
+            padding: 12px 25px;
+        }
+
+        .btn-create:hover {
+            background-color: #5568d3;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav>
+        <div class="navbar-container">
+            <div class="navbar-logo">🎫 EventTickets</div>
+            <ul class="nav-menu" id="navMenu">
+                <li><a onclick="showSection('home')">Browse Events</a></li>
+                <li id="userNav" style="display: none;">
+                    <a onclick="showSection('my-tickets')">My Tickets</a>
+                </li>
+                <li id="organizerNav" style="display: none;">
+                    <a onclick="showSection('dashboard')">Dashboard</a>
+                </li>
+                <li id="authNav">
+                    <a onclick="showSection('login')">Login</a>
+                </li>
+                <li id="logoutNav" style="display: none;">
+                    <a onclick="logout()">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Home Section -->
+        <section id="home" class="active">
+            <h2>Browse Events</h2>
+            <div class="filters">
+                <input type="text" id="searchInput" placeholder="Search events..." onkeyup="filterEvents()">
+                <select id="categoryFilter" onchange="filterEvents()">
+                    <option value="">All Categories</option>
+                    <option value="Music">Music</option>
+                    <option value="Sports">Sports</option>
+                    <option value="Technology">Technology</option>
+                    <option value="Art">Art</option>
+                    <option value="Business">Business</option>
+                </select>
+                <input type="text" id="cityFilter" placeholder="City" onkeyup="filterEvents()">
+            </div>
+            <div class="events-grid" id="eventsGrid"></div>
+        </section>
+
+        <!-- Event Detail Section -->
+        <section id="event-detail">
+            <div id="eventDetailContent"></div>
+        </section>
+
+        <!-- Login Section -->
+        <section id="login">
+            <div class="auth-container">
+                <div class="auth-card">
+                    <h2>Login</h2>
+                    <div id="loginMessage"></div>
+                    <div class="form-group">
+                        <label>User Type</label>
+                        <select id="userType" onchange="updateLoginForm()">
+                            <option value="user">Regular User</option>
+                            <option value="organizer">Organizer</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="loginEmail" placeholder="Enter your email">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="loginPassword" placeholder="Enter your password">
+                    </div>
+                    <button onclick="login()">Login</button>
+                    <p>Don't have an account? <a onclick="showSection('register')">Register here</a></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Register Section -->
+        <section id="register">
+            <div class="auth-container">
+                <div class="auth-card">
+                    <h2>Create Account</h2>
+                    <div id="registerMessage"></div>
+                    <div class="form-group">
+                        <label>Account Type</label>
+                        <select id="registerType" onchange="updateRegisterForm()">
+                            <option value="user">Regular User</option>
+                            <option value="organizer">Organizer</option>
+                        </select>
+                    </div>
+                    <div id="userFields">
+                        <div class="form-group">
+                            <label>First Name</label>
+                            <input type="text" id="firstName" placeholder="First name">
+                        </div>
+                        <div class="form-group">
+                            <label>Last Name</label>
+                            <input type="text" id="lastName" placeholder="Last name">
+                        </div>
+                    </div>
+                    <div id="organizerFields" style="display: none;">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="orgName" placeholder="Full name">
+                        </div>
+                        <div class="form-group">
+                            <label>Company Name</label>
+                            <input type="text" id="company" placeholder="Company name">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="registerEmail" placeholder="Enter email">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="registerPassword" placeholder="Create password">
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm Password</label>
+                        <input type="password" id="confirmPassword" placeholder="Confirm password">
+                    </div>
+                    <button onclick="register()">Register</button>
+                    <p>Already have an account? <a onclick="showSection('login')">Login here</a></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- My Tickets Section -->
+        <section id="my-tickets">
+            <h2>My Tickets</h2>
+            <div id="ticketsMessage"></div>
+            <div class="tickets-list" id="ticketsList"></div>
+        </section>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard">
+            <h2>Event Management Dashboard</h2>
+            <div id="dashboardMessage"></div>
+            <button class="btn-create" onclick="toggleCreateForm()">Create New Event</button>
+
+            <div id="createEventForm" class="form-section" style="display: none; margin-top: 30px;">
+                <h3>Create New Event</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Event Title *</label>
+                        <input type="text" id="eventTitle" placeholder="Event title">
+                    </div>
+                    <div class="form-group">
+                        <label>Category *</label>
+                        <select id="eventCategory">
+                            <option value="Music">Music</option>
+                            <option value="Sports">Sports</option>
+                            <option value="Technology">Technology</option>
+                            <option value="Art">Art</option>
+                            <option value="Business">Business</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group form-row full">
+                    <label>Description *</label>
+                    <textarea id="eventDescription" placeholder="Event description"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Start Date *</label>
+                        <input type="datetime-local" id="startDate">
+                    </div>
+                    <div class="form-group">
+                        <label>End Date *</label>
+                        <input type="datetime-local" id="endDate">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Location *</label>
+                        <input type="text" id="location" placeholder="Event location">
+                    </div>
+                    <div class="form-group">
+                        <label>City</label>
+                        <input type="text" id="eventCity" placeholder="City">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Country</label>
+                        <input type="text" id="country" placeholder="Country">
+                    </div>
+                    <div class="form-group">
+                        <label>Ticket Capacity *</label>
+                        <input type="number" id="capacity" placeholder="Number of tickets">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Ticket Price ($) *</label>
+                        <input type="number" id="price" step="0.01" placeholder="Ticket price">
+                    </div>
+                </div>
+
+                <button class="btn-success" onclick="createEvent()">Create Event</button>
+                <button onclick="toggleCreateForm()" style="background-color: #6c757d; margin-left: 10px;">Cancel</button>
+            </div>
+
+            <div style="margin-top: 40px;">
+                <h3>Your Events</h3>
+                <div id="eventsTableContainer"></div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Sample Events Data
+        const sampleEvents = [
+            {
+                id: '1',
+                title: 'Summer Music Festival',
+                description: 'Join us for the biggest music festival of the year featuring top artists from around the world.',
+                category: 'Music',
+                startDate: '2026-06-15T18:00',
+                endDate: '2026-06-17T23:00',
+                location: 'Central Park',
+                city: 'New York',
+                country: 'USA',
+                price: 99,
+                capacity: 1000,
+                ticketsAvailable: 500,
+                organizerId: null
+            },
+            {
+                id: '2',
+                title: 'Tech Conference 2026',
+                description: 'The leading technology conference bringing together innovators and industry leaders.',
+                category: 'Technology',
+                startDate: '2026-04-20T09:00',
+                endDate: '2026-04-22T17:00',
+                location: 'Convention Center',
+                city: 'San Francisco',
+                country: 'USA',
+                price: 299,
+                capacity: 500,
+                ticketsAvailable: 200,
+                organizerId: null
+            },
+            {
+                id: '3',
+                title: 'Championship Boxing',
+                description: 'Watch the world championship boxing match live. Featuring the top boxers of 2026.',
+                category: 'Sports',
+                startDate: '2026-05-10T20:00',
+                endDate: '2026-05-10T23:00',
+                location: 'Sports Arena',
+                city: 'Las Vegas',
+                country: 'USA',
+                price: 149,
+                capacity: 5000,
+                ticketsAvailable: 1000,
+                organizerId: null
+            },
+            {
+                id: '4',
+                title: 'Art Expo 2026',
+                description: 'Explore contemporary and classical art from emerging and established artists worldwide.',
+                category: 'Art',
+                startDate: '2026-07-01T10:00',
+                endDate: '2026-07-30T18:00',
+                location: 'Modern Art Museum',
+                city: 'Los Angeles',
+                country: 'USA',
+                price: 45,
+                capacity: 1000,
+                ticketsAvailable: 300,
+                organizerId: null
+            },
+            {
+                id: '5',
+                title: 'Business Summit',
+                description: 'Network with industry leaders and learn about the future of business in 2026.',
+                category: 'Business',
+                startDate: '2026-08-15T08:00',
+                endDate: '2026-08-16T17:00',
+                location: 'Downtown Hotel',
+                city: 'Chicago',
+                country: 'USA',
+                price: 199,
+                capacity: 300,
+                ticketsAvailable: 150,
+                organizerId: null
+            }
+        ];
+
+        // App State
+        let currentUser = null;
+        let currentOrganizer = null;
+        let allEvents = [...sampleEvents];
+        let allTickets = [];
+
+        // Initialize
+        function init() {
+            loadFromLocalStorage();
+            displayEvents();
+            updateNavigation();
+        }
+
+        // Save and Load from localStorage
+        function saveToLocalStorage() {
+            localStorage.setItem('users', JSON.stringify(JSON.parse(localStorage.getItem('users') || '{}')[currentUser?.email] ? JSON.parse(localStorage.getItem('users')) : JSON.parse(localStorage.getItem('users') || '{}')));
+            localStorage.setItem('events', JSON.stringify(allEvents));
+            localStorage.setItem('tickets', JSON.stringify(allTickets));
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            localStorage.setItem('currentOrganizer', JSON.stringify(currentOrganizer));
+        }
+
+        function loadFromLocalStorage() {
+            allEvents = JSON.parse(localStorage.getItem('events')) || [...sampleEvents];
+            allTickets = JSON.parse(localStorage.getItem('tickets')) || [];
+            currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            currentOrganizer = JSON.parse(localStorage.getItem('currentOrganizer'));
+        }
+
+        // Navigation
+        function showSection(sectionId) {
+            document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+
+            if (sectionId === 'home') displayEvents();
+            if (sectionId === 'my-tickets') displayMyTickets();
+            if (sectionId === 'dashboard') displayDashboard();
+        }
+
+        function updateNavigation() {
+            const userNav = document.getElementById('userNav');
+            const organizerNav = document.getElementById('organizerNav');
+            const authNav = document.getElementById('authNav');
+            const logoutNav = document.getElementById('logoutNav');
+
+            if (currentUser) {
+                userNav.style.display = 'block';
+                authNav.style.display = 'none';
+                logoutNav.style.display = 'block';
+                logoutNav.innerHTML = `<a onclick="logout()">Logout (${currentUser.firstName})</a>`;
+            } else if (currentOrganizer) {
+                organizerNav.style.display = 'block';
+                authNav.style.display = 'none';
+                logoutNav.style.display = 'block';
+                logoutNav.innerHTML = `<a onclick="logout()">Logout (${currentOrganizer.name})</a>`;
+            } else {
+                userNav.style.display = 'none';
+                organizerNav.style.display = 'none';
+                authNav.style.display = 'block';
+                logoutNav.style.display = 'none';
+            }
+        }
+
+        // Authentication
+        function updateLoginForm() {
+            // Form updates based on user type
+        }
+
+        function updateRegisterForm() {
+            const type = document.getElementById('registerType').value;
+            document.getElementById('userFields').style.display = type === 'user' ? 'block' : 'none';
+            document.getElementById('organizerFields').style.display = type === 'organizer' ? 'block' : 'none';
+        }
+
+        function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const type = document.getElementById('userType').value;
+            const messageDiv = document.getElementById('loginMessage');
+
+            if (!email || !password) {
+                messageDiv.innerHTML = '<div class="error">Please fill in all fields</div>';
+                return;
+            }
+
+            let users = JSON.parse(localStorage.getItem('users') || '{}');
+            let user = users[email];
+
+            if (!user || user.password !== password || user.type !== type) {
+                messageDiv.innerHTML = '<div class="error">Invalid credentials</div>';
+                return;
+            }
+
+            if (type === 'user') {
+                currentUser = user;
+                currentOrganizer = null;
+            } else {
+                currentOrganizer = user;
+                currentUser = null;
+            }
+
+            saveToLocalStorage();
+            updateNavigation();
+            showSection('home');
+        }
+
+        function register() {
+            const type = document.getElementById('registerType').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const messageDiv = document.getElementById('registerMessage');
+
+            if (!email || !password || !confirmPassword) {
+                messageDiv.innerHTML = '<div class="error">Please fill in all fields</div>';
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                messageDiv.innerHTML = '<div class="error">Passwords do not match</div>';
+                return;
+            }
+
+            let users = JSON.parse(localStorage.getItem('users') || '{}');
+
+            if (users[email]) {
+                messageDiv.innerHTML = '<div class="error">Email already registered</div>';
+                return;
+            }
+
+            if (type === 'user') {
+                const firstName = document.getElementById('firstName').value;
+                const lastName = document.getElementById('lastName').value;
+
+                if (!firstName || !lastName) {
+                    messageDiv.innerHTML = '<div class="error">Please fill in all fields</div>';
+                    return;
+                }
+
+                users[email] = {
+                    id: 'user_' + Date.now(),
+                    type: 'user',
+                    email,
+                    password,
+                    firstName,
+                    lastName
+                };
+
+                currentUser = users[email];
+                currentOrganizer = null;
+            } else {
+                const name = document.getElementById('orgName').value;
+                const company = document.getElementById('company').value;
+
+                if (!name) {
+                    messageDiv.innerHTML = '<div class="error">Please fill in all fields</div>';
+                    return;
+                }
+
+                users[email] = {
+                    id: 'org_' + Date.now(),
+                    type: 'organizer',
+                    email,
+                    password,
+                    name,
+                    company
+                };
+
+                currentOrganizer = users[email];
+                currentUser = null;
+            }
+
+            localStorage.setItem('users', JSON.stringify(users));
+            saveToLocalStorage();
+            updateNavigation();
+            showSection('home');
+        }
+
+        function logout() {
+            currentUser = null;
+            currentOrganizer = null;
+            saveToLocalStorage();
+            updateNavigation();
+            showSection('home');
+        }
+
+        // Events Display
+        function displayEvents() {
+            const grid = document.getElementById('eventsGrid');
+            let filteredEvents = filterEventsList();
+
+            if (filteredEvents.length === 0) {
+                grid.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;"><h3>No events found</h3></div>';
+                return;
+            }
+
+            grid.innerHTML = filteredEvents.map(event => `
+                <div class="event-card">
+                    <div class="event-image">📅 ${event.category}</div>
+                    <div class="event-info">
+                        <h3>${event.title}</h3>
+                        <p class="event-category">${event.category}</p>
+                        <p class="event-meta">📍 ${event.location}</p>
+                        <p class="event-meta">🗓️ ${new Date(event.startDate).toLocaleDateString()}</p>
+                        <p class="event-price">$${event.price}</p>
+                        <p class="event-available">${event.ticketsAvailable} tickets available</p>
+                        <button class="btn-view" onclick="viewEventDetail('${event.id}')">View Details</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterEventsList() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const category = document.getElementById('categoryFilter').value;
+            const city = document.getElementById('cityFilter').value.toLowerCase();
+
+            return allEvents.filter(event => {
+                return (!category || event.category === category) &&
+                       (!city || event.city.toLowerCase().includes(city)) &&
+                       (!search || event.title.toLowerCase().includes(search) || event.description.toLowerCase().includes(search));
+            });
+        }
+
+        function filterEvents() {
+            displayEvents();
+        }
+
+        function viewEventDetail(eventId) {
+            const event = allEvents.find(e => e.id === eventId);
+            const section = document.getElementById('event-detail');
+            const content = document.getElementById('eventDetailContent');
+
+            if (!event) return;
+
+            content.innerHTML = `
+                <h2>${event.title}</h2>
+                <div class="event-detail">
+                    <h3>About Event</h3>
+                    <p>${event.description}</p>
+
+                    <h3>Event Details</h3>
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <strong>Date:</strong>
+                            <p>${new Date(event.startDate).toLocaleDateString()}</p>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Time:</strong>
+                            <p>${new Date(event.startDate).toLocaleTimeString()}</p>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Location:</strong>
+                            <p>${event.location}</p>
+                        </div>
+                        <div class="detail-item">
+                            <strong>City:</strong>
+                            <p>${event.city}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ticket-box">
+                    <h3>Get Tickets</h3>
+                    <p class="price-display">$${event.price} per ticket</p>
+                    <p>${event.ticketsAvailable} tickets available</p>
+
+                    <div class="form-group">
+                        <label>Quantity</label>
+                        <input type="number" id="ticketQuantity" value="1" min="1" max="${event.ticketsAvailable}">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Payment Method</label>
+                        <select id="paymentMethod">
+                            <option>Credit Card</option>
+                            <option>Bank Transfer</option>
+                            <option>Digital Wallet</option>
+                        </select>
+                    </div>
+
+                    <div class="price-summary">
+                        <p>Subtotal: <strong>$${event.price}</strong></p>
+                        <p>Total: <strong>$${event.price}</strong></p>
+                    </div>
+
+                    ${currentUser ? `
+                        <button class="btn-success" onclick="purchaseTicket('${event.id}')">Buy Tickets</button>
+                    ` : `
+                        <p><a onclick="showSection('login')">Login</a> to purchase tickets</p>
+                    `}
+
+                    <button onclick="showSection('home')" style="background-color: #6c757d; margin-top: 10px; width: 100%;">Back to Events</button>
+                </div>
+            `;
+
+            showSection('event-detail');
+        }
+
+        function purchaseTicket(eventId) {
+            if (!currentUser) {
+                showSection('login');
+                return;
+            }
+
+            const event = allEvents.find(e => e.id === eventId);
+            const quantity = parseInt(document.getElementById('ticketQuantity').value);
+            const paymentMethod = document.getElementById('paymentMethod').value;
+
+            if (quantity < 1 || quantity > event.ticketsAvailable) {
+                alert('Invalid quantity');
+                return;
+            }
+
+            const ticket = {
+                id: 'ticket_' + Date.now(),
+                ticketNumber: `TKT-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                eventId: event.id,
+                eventTitle: event.title,
+                eventDate: event.startDate,
+                eventLocation: event.location,
+                userId: currentUser.id,
+                price: event.price,
+                quantity: quantity,
+                paymentMethod: paymentMethod,
+                purchaseDate: new Date().toISOString(),
+                status: 'Confirmed'
+            };
+
+            allTickets.push(ticket);
+            event.ticketsAvailable -= quantity;
+
+            saveToLocalStorage();
+
+            alert(`Successfully purchased ${quantity} ticket(s)! Total: $${event.price * quantity}`);
+            showSection('my-tickets');
+        }
+
+        // My Tickets
+        function displayMyTickets() {
+            if (!currentUser) {
+                showSection('login');
+                return;
+            }
+
+            const userTickets = allTickets.filter(t => t.userId === currentUser.id);
+            const messageDiv = document.getElementById('ticketsMessage');
+            const list = document.getElementById('ticketsList');
+
+            if (userTickets.length === 0) {
+                list.innerHTML = '<div class="empty-state"><h3>No tickets purchased yet</h3></div>';
+                return;
+            }
+
+            list.innerHTML = userTickets.map(ticket => `
+                <div class="ticket-item">
+                    <div class="ticket-header">
+                        <h3>${ticket.eventTitle}</h3>
+                        <span class="status-badge status-${ticket.status.toLowerCase()}">
+                            ${ticket.status}
+                        </span>
+                    </div>
+                    <div class="ticket-details">
+                        <p><strong>Ticket #:</strong> ${ticket.ticketNumber}</p>
+                        <p><strong>Quantity:</strong> ${ticket.quantity}</p>
+                        <p><strong>Price per ticket:</strong> $${ticket.price}</p>
+                        <p><strong>Total:</strong> $${ticket.price * ticket.quantity}</p>
+                        <p><strong>Date:</strong> ${new Date(ticket.eventDate).toLocaleDateString()}</p>
+                        <p><strong>Location:</strong> ${ticket.eventLocation}</p>
+                        <p><strong>Payment Method:</strong> ${ticket.paymentMethod}</p>
+                        <p><strong>Purchased:</strong> ${new Date(ticket.purchaseDate).toLocaleDateString()}</p>
+                    </div>
+                    ${ticket.status === 'Confirmed' ? `
+                        <button class="btn-danger" onclick="cancelTicket('${ticket.id}')" style="margin-top: 15px;">Cancel Ticket</button>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        function cancelTicket(ticketId) {
+            if (!confirm('Are you sure you want to cancel this ticket?')) return;
+
+            const ticket = allTickets.find(t => t.id === ticketId);
+            const event = allEvents.find(e => e.id === ticket.eventId);
+
+            ticket.status = 'Cancelled';
+            event.ticketsAvailable += ticket.quantity;
+
+            saveToLocalStorage();
+            displayMyTickets();
+        }
+
+        // Dashboard
+        function displayDashboard() {
+            if (!currentOrganizer) {
+                showSection('login');
+                return;
+            }
+
+            const organizerEvents = allEvents.filter(e => e.organizerId === currentOrganizer.id);
+            const container = document.getElementById('eventsTableContainer');
+
+            if (organizerEvents.length === 0) {
+                container.innerHTML = '<div class="empty-state"><h3>No events created yet</h3></div>';
+                return;
+            }
+
+            const tableHTML = `
+                <div class="events-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event Title</th>
+                                <th>Category</th>
+                                <th>Date</th>
+                                <th>Location</th>
+                                <th>Price</th>
+                                <th>Capacity</th>
+                                <th>Available</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${organizerEvents.map(event => {
+                                const eventTickets = allTickets.filter(t => t.eventId === event.id && t.status === 'Confirmed');
+                                const totalRevenue = eventTickets.reduce((sum, t) => sum + (t.price * t.quantity), 0);
+
+                                return `
+                                    <tr>
+                                        <td>${event.title}</td>
+                                        <td>${event.category}</td>
+                                        <td>${new Date(event.startDate).toLocaleDateString()}</td>
+                                        <td>${event.location}</td>
+                                        <td>$${event.price}</td>
+                                        <td>${event.capacity}</td>
+                                        <td>${event.ticketsAvailable}</td>
+                                        <td>
+                                            <button class="btn-small btn-delete" onclick="deleteEvent('${event.id}')">Delete</button>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            container.innerHTML = tableHTML;
+        }
+
+        function toggleCreateForm() {
+            const form = document.getElementById('createEventForm');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function createEvent() {
+            if (!currentOrganizer) return;
+
+            const title = document.getElementById('eventTitle').value;
+            const category = document.getElementById('eventCategory').value;
+            const description = document.getElementById('eventDescription').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const location = document.getElementById('location').value;
+            const city = document.getElementById('eventCity').value;
+            const country = document.getElementById('country').value;
+            const capacity = parseInt(document.getElementById('capacity').value);
+            const price = parseFloat(document.getElementById('price').value);
+
+            if (!title || !description || !startDate || !endDate || !location || !capacity || !price) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            const newEvent = {
+                id: 'event_' + Date.now(),
+                title,
+                category,
+                description,
+                startDate,
+                endDate,
+                location,
+                city,
+                country,
+                capacity,
+                ticketsAvailable: capacity,
+                price,
+                organizerId: currentOrganizer.id
+            };
+
+            allEvents.push(newEvent);
+            saveToLocalStorage();
+
+            document.getElementById('eventTitle').value = '';
+            document.getElementById('eventDescription').value = '';
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            document.getElementById('location').value = '';
+            document.getElementById('eventCity').value = '';
+            document.getElementById('country').value = '';
+            document.getElementById('capacity').value = '';
+            document.getElementById('price').value = '';
+
+            toggleCreateForm();
+            displayDashboard();
+        }
+
+        function deleteEvent(eventId) {
+            if (!confirm('Are you sure you want to delete this event?')) return;
+
+            allEvents = allEvents.filter(e => e.id !== eventId);
+            saveToLocalStorage();
+            displayDashboard();
+        }
+
+        // Start App
+        init();
+    </script>
+</body>
+</html>
