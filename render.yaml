@@ -1,0 +1,35 @@
+services:
+  # Frontend Service
+  - type: web
+    name: ticketing-frontend
+    runtime: static
+    buildCommand: cd frontend && npm ci --only=production && npm run build
+    staticPublishPath: frontend/build
+    routes:
+      - type: rewrite
+        source: /api/*
+        destination: https://ticketing-backend.onrender.com/api/*
+      - type: file
+        source: /**
+        destination: /index.html
+    envVars:
+      - key: NODE_ENV
+        value: production
+    
+  # Backend Service  
+  - type: web
+    name: ticketing-backend
+    runtime: node
+    buildCommand: cd backend && npm ci --only=production
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CLIENT_URL
+        value: https://ticketing-frontend.onrender.com

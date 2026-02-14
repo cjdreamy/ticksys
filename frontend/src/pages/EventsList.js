@@ -170,7 +170,7 @@ const EventsList = () => {
                   {new Date(event.startDate).toLocaleDateString()}
                 </p>
                 <p className="event-location">📍 {event.location}</p>
-                <p className="event-price">${event.price}</p>
+                <p className="event-price">KSH {event.price}</p>
                 <p className="event-available">
                   {event.ticketsAvailable} tickets available
                 </p>

@@ -250,7 +250,7 @@ const OrganizerDashboard = () => {
 
             <div className="form-row">
               <div className="form-group">
-                <label>Ticket Price ($) *</label>
+                <label>Ticket Price (KSH) *</label>
                 <input
                   type="number"
                   step="0.01"
@@ -293,9 +293,9 @@ const OrganizerDashboard = () => {
                       <td>{event.category}</td>
                       <td>{new Date(event.startDate).toLocaleDateString()}</td>
                       <td>{event.location}</td>
-                      <td>${event.price}</td>
+                      <td>KSH {event.price}</td>
                       <td>{event.capacity}</td>
-                      <td>{stats.totalSold} (${stats.totalRevenue})</td>
+                      <td>{stats.totalSold} (KSH {stats.totalRevenue})</td>
                       <td>
                         <button
                           className="btn-delete"

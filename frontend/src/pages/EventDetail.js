@@ -147,7 +147,7 @@ const EventDetail = () => {
       // Update mock events
       MOCK_EVENTS[id] = updatedEvent;
 
-      setSuccess(`Successfully purchased ${quantity} ticket(s)! Total: $${event.price * quantity}`);
+      setSuccess(`Successfully purchased ${quantity} ticket(s)! Total: KSH ${event.price * quantity}`);
       setQuantity(1);
       setTimeout(() => navigate('/my-tickets'), 2000);
     } catch (err) {
@@ -197,7 +197,7 @@ const EventDetail = () => {
         <div className="ticket-sidebar">
           <div className="ticket-box">
             <h3>Get Tickets</h3>
-            <p className="price">${event.price} per ticket</p>
+            <p className="price">KSH {event.price} per ticket</p>
             <p className="available">
               {event.ticketsAvailable} tickets available
             </p>
@@ -226,8 +226,8 @@ const EventDetail = () => {
             </div>
 
             <div className="price-summary">
-              <p>Subtotal: <strong>${event.price * quantity}</strong></p>
-              <p>Total: <strong>${event.price * quantity}</strong></p>
+              <p>Subtotal: <strong>KSH {event.price * quantity}</strong></p>
+              <p>Total: <strong>KSH {event.price * quantity}</strong></p>
             </div>
 
             <button

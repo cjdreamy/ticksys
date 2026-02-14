@@ -156,6 +156,35 @@
             background-color: #218838;
         }
 
+        button.btn-warning {
+            background-color: #ff6b6b;
+        }
+
+        button.btn-warning:hover {
+            background-color: #ee5a4a;
+        }
+
+        button.btn-info {
+            background-color: #0dcaf0;
+        }
+
+        button.btn-info:hover {
+            background-color: #0aa2c0;
+        }
+
+        button.btn-secondary {
+            background-color: #6c757d;
+        }
+
+        button.btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
         /* Messages */
         .error {
             background-color: #f8d7da;
@@ -671,6 +700,13 @@
             <h2>My Tickets</h2>
             <div id="ticketsMessage"></div>
             <div class="tickets-list" id="ticketsList"></div>
+            
+            <!-- Pending Transfers/Resales Section -->
+            <div id="pendingTransfers" style="margin-top: 40px; display: none;">
+                <h3>Pending Ticket Transfers</h3>
+                <p style="color: #666; margin-bottom: 20px;">Confirm ownership to complete ticket transfers from other users</p>
+                <div id="transfersList"></div>
+            </div>
         </section>
 
         <!-- Dashboard Section -->
@@ -755,6 +791,8 @@
     </div>
 
     <script>
+        // Enhanced Ticket Management System with Resale, Transfer, Waitlist & Ownership Tracking
+        
         // Sample Events Data
         const sampleEvents = [
             {
@@ -770,7 +808,8 @@
                 price: 99,
                 capacity: 1000,
                 ticketsAvailable: 500,
-                organizerId: null
+                organizerId: null,
+                waitlist: []
             },
             {
                 id: '2',
@@ -785,7 +824,8 @@
                 price: 299,
                 capacity: 500,
                 ticketsAvailable: 200,
-                organizerId: null
+                organizerId: null,
+                waitlist: []
             },
             {
                 id: '3',
@@ -800,7 +840,8 @@
                 price: 149,
                 capacity: 5000,
                 ticketsAvailable: 1000,
-                organizerId: null
+                organizerId: null,
+                waitlist: []
             },
             {
                 id: '4',
@@ -815,7 +856,8 @@
                 price: 45,
                 capacity: 1000,
                 ticketsAvailable: 300,
-                organizerId: null
+                organizerId: null,
+                waitlist: []
             },
             {
                 id: '5',
@@ -830,7 +872,8 @@
                 price: 199,
                 capacity: 300,
                 ticketsAvailable: 150,
-                organizerId: null
+                organizerId: null,
+                waitlist: []
             }
         ];
 
@@ -1143,74 +1186,283 @@
             const quantity = parseInt(document.getElementById('ticketQuantity').value);
             const paymentMethod = document.getElementById('paymentMethod').value;
 
-            if (quantity < 1 || quantity > event.ticketsAvailable) {
+            if (quantity < 1) {
                 alert('Invalid quantity');
                 return;
             }
 
-            const ticket = {
-                id: 'ticket_' + Date.now(),
-                ticketNumber: `TKT-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                eventId: event.id,
-                eventTitle: event.title,
-                eventDate: event.startDate,
-                eventLocation: event.location,
-                userId: currentUser.id,
-                price: event.price,
-                quantity: quantity,
-                paymentMethod: paymentMethod,
-                purchaseDate: new Date().toISOString(),
-                status: 'Confirmed'
-            };
+            // If tickets available, purchase
+            if (quantity <= event.ticketsAvailable) {
+                const ticket = {
+                    id: 'ticket_' + Date.now(),
+                    ticketCode: generateTicketCode(),
+                    eventId: event.id,
+                    eventTitle: event.title,
+                    eventDate: event.startDate,
+                    eventLocation: event.location,
+                    originalBuyer: currentUser.id,
+                    originalBuyerEmail: currentUser.email,
+                    currentOwner: currentUser.id,
+                    currentOwnerEmail: currentUser.email,
+                    originalPrice: event.price,
+                    price: event.price,
+                    quantity: quantity,
+                    paymentMethod: paymentMethod,
+                    purchaseDate: new Date().toISOString(),
+                    status: 'Confirmed',
+                    ownershipPending: false,
+                    resaleHistory: [],
+                    transferPendingTo: null,
+                    transferRecipientEmail: null,
+                    resalePendingTo: null
+                };
 
-            allTickets.push(ticket);
-            event.ticketsAvailable -= quantity;
+                allTickets.push(ticket);
+                event.ticketsAvailable -= quantity;
 
-            saveToLocalStorage();
+                saveToLocalStorage();
+                alert(`Successfully purchased ${quantity} ticket(s)! \n\nYour Ticket Code: ${ticket.ticketCode}\n\nTotal: $${event.price * quantity}`);
+                showSection('my-tickets');
+            } else if (event.ticketsAvailable === 0) {
+                // Add to waitlist
+                const addToWaitlist = confirm(
+                    `Event is sold out!\n\nWould you like to join the waitlist?\n\nYou'll be notified if tickets become available through cancellations or resales.`
+                );
 
-            alert(`Successfully purchased ${quantity} ticket(s)! Total: $${event.price * quantity}`);
-            showSection('my-tickets');
+                if (addToWaitlist) {
+                    if (!event.waitlist) event.waitlist = [];
+                    
+                    const waitlistEntry = {
+                        userId: currentUser.id,
+                        email: currentUser.email,
+                        requestDate: new Date().toISOString(),
+                        quantity: quantity
+                    };
+
+                    event.waitlist.push(waitlistEntry);
+                    saveToLocalStorage();
+                    alert(`Added to waitlist! You're #${event.waitlist.length} in line.\n\nYou'll be contacted if tickets become available.`);
+                    showSection('home');
+                }
+            } else {
+                // Partial availability
+                const purchasePartial = confirm(
+                    `Only ${event.ticketsAvailable} tickets available.\n\nWould you like to:\n- Buy ${event.ticketsAvailable} tickets now\n- Or join waitlist for ${quantity} tickets`
+                );
+
+                if (purchasePartial) {
+                    const ticket = {
+                        id: 'ticket_' + Date.now(),
+                        ticketCode: generateTicketCode(),
+                        eventId: event.id,
+                        eventTitle: event.title,
+                        eventDate: event.startDate,
+                        eventLocation: event.location,
+                        originalBuyer: currentUser.id,
+                        originalBuyerEmail: currentUser.email,
+                        currentOwner: currentUser.id,
+                        currentOwnerEmail: currentUser.email,
+                        originalPrice: event.price,
+                        price: event.price,
+                        quantity: event.ticketsAvailable,
+                        paymentMethod: paymentMethod,
+                        purchaseDate: new Date().toISOString(),
+                        status: 'Confirmed',
+                        ownershipPending: false,
+                        resaleHistory: [],
+                        transferPendingTo: null,
+                        transferRecipientEmail: null,
+                        resalePendingTo: null
+                    };
+
+                    allTickets.push(ticket);
+                    event.ticketsAvailable = 0;
+
+                    saveToLocalStorage();
+                    alert(`Successfully purchased ${event.ticketsAvailable} ticket(s)!`);
+                    showSection('my-tickets');
+                } else {
+                    // Add remaining to waitlist
+                    if (!event.waitlist) event.waitlist = [];
+                    event.waitlist.push({
+                        userId: currentUser.id,
+                        email: currentUser.email,
+                        requestDate: new Date().toISOString(),
+                        quantity: quantity
+                    });
+                    saveToLocalStorage();
+                    alert('Added to waitlist!');
+                    showSection('home');
+                }
+            }
         }
 
-        // My Tickets
+        // My Tickets with Enhanced Features (Resale, Transfer, Ownership)
         function displayMyTickets() {
             if (!currentUser) {
                 showSection('login');
                 return;
             }
 
-            const userTickets = allTickets.filter(t => t.userId === currentUser.id);
+            const userTickets = allTickets.filter(t => t.currentOwner === currentUser.id);
             const messageDiv = document.getElementById('ticketsMessage');
             const list = document.getElementById('ticketsList');
 
             if (userTickets.length === 0) {
-                list.innerHTML = '<div class="empty-state"><h3>No tickets purchased yet</h3></div>';
+                list.innerHTML = '<div class="empty-state"><h3>No tickets owned yet</h3></div>';
+            } else {
+                list.innerHTML = userTickets.map(ticket => {
+                    const event = allEvents.find(e => e.id === ticket.eventId);
+                    const isOwner = ticket.currentOwner === currentUser.id;
+                    const hasWaitlist = event && event.waitlist && event.waitlist.length > 0;
+                    const isLocked = ticket.ownershipPending;
+
+                    return `
+                        <div class="ticket-item" style="${isLocked ? 'opacity: 0.7; border: 2px solid orange;' : ''}">
+                            <div class="ticket-header">
+                                <h3>${ticket.eventTitle}</h3>
+                                <span class="status-badge status-${ticket.status.toLowerCase()}">
+                                    ${ticket.status}
+                                </span>
+                                ${isLocked ? '<span class="status-badge" style="background-color: #fff3cd; color: #856404;">⏳ Transfer Pending</span>' : ''}
+                            </div>
+                            <div class="ticket-details">
+                                <p><strong>Ticket Code:</strong> ${ticket.ticketCode}</p>
+                                <p><strong>Quantity:</strong> ${ticket.quantity}</p>
+                                <p><strong>Original Price:</strong> $${ticket.originalPrice}</p>
+                                <p><strong>Current Owner:</strong> ${ticket.currentOwnerEmail || 'You'}</p>
+                                ${ticket.currentOwner !== ticket.originalBuyer ? `<p><strong>Original Buyer:</strong> ${ticket.originalBuyerEmail}</p>` : ''}
+                                <p><strong>Total:</strong> $${ticket.originalPrice * ticket.quantity}</p>
+                                <p><strong>Date:</strong> ${new Date(ticket.eventDate).toLocaleDateString()}</p>
+                                <p><strong>Location:</strong> ${ticket.eventLocation}</p>
+                                <p><strong>Purchased:</strong> ${new Date(ticket.purchaseDate).toLocaleDateString()}</p>
+                                ${ticket.resaleHistory && ticket.resaleHistory.length > 0 ? `
+                                    <p><strong>Resale History:</strong> ${ticket.resaleHistory.length} transfer(s)</p>
+                                ` : ''}
+                            </div>
+                            
+                            ${isOwner && ticket.status === 'Confirmed' && !isLocked ? `
+                                <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                                    <button class="btn-danger" onclick="cancelTicket('${ticket.id}')" style="margin: 0;">Cancel Ticket</button>
+                                    ${hasWaitlist ? `
+                                        <button class="btn-warning" onclick="showResaleModal('${ticket.id}')" style="margin: 0; background-color: #ff6b6b;">Resell to Organization</button>
+                                    ` : `
+                                        <button class="btn-secondary" style="margin: 0; background-color: #ccc; cursor: not-allowed;" disabled>Resell (No Waitlist)</button>
+                                    `}
+                                    <button class="btn-info" onclick="showTransferModal('${ticket.id}')" style="margin: 0; background-color: #0dcaf0;">Transfer to Friend</button>
+                                </div>
+                            ` : isLocked ? `
+                                <div style="margin-top: 15px; padding: 10px; background-color: #fff3cd; border-radius: 5px;">
+                                    <p><strong>⏳ Waiting for new owner to confirm ownership change...</strong></p>
+                                    <p style="font-size: 12px; color: #666;">Transaction is locked until ownership is confirmed.</p>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Show pending transfers for this user
+            const pendingTransfers = allTickets.filter(t => 
+                (t.transferRecipientEmail === currentUser.email || t.transferPendingTo === currentUser.id) && 
+                t.ownershipPending
+            );
+
+            const transfersDiv = document.getElementById('pendingTransfers');
+            const transfersList = document.getElementById('transfersList');
+
+            if (pendingTransfers.length > 0) {
+                transfersDiv.style.display = 'block';
+                transfersList.innerHTML = pendingTransfers.map(ticket => `
+                    <div class="ticket-item" style="border: 2px solid #0dcaf0; background-color: #f0f8ff;">
+                        <div class="ticket-header">
+                            <h3>${ticket.eventTitle}</h3>
+                            <span class="status-badge" style="background-color: #0dcaf0; color: white;">🎟️ Awaiting Your Confirmation</span>
+                        </div>
+                        <div class="ticket-details">
+                            <p><strong>Ticket Code (Current):</strong> ${ticket.ticketCode}</p>
+                            <p><strong>Transferred From:</strong> ${ticket.currentOwnerEmail}</p>
+                            <p><strong>Quantity:</strong> ${ticket.quantity}</p>
+                            <p><strong>Price:</strong> $${ticket.originalPrice}</p>
+                            <p><strong>Event Date:</strong> ${new Date(ticket.eventDate).toLocaleDateString()}</p>
+                            <p><strong>Location:</strong> ${ticket.eventLocation}</p>
+                        </div>
+                        <button class="btn-success" onclick="confirmOwnershipChange('${ticket.id}')" style="margin-top: 15px; width: 100%;">
+                            ✓ Confirm Ownership & Receive New Code
+                        </button>
+                    </div>
+                `).join('');
+            } else {
+                transfersDiv.style.display = 'none';
+            }
+        }
+
+        // Generate Ticket Code/QR Code
+        function generateTicketCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = 'TKT-';
+            for (let i = 0; i < 12; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
+        }
+
+        // Resale Modal
+        function showResaleModal(ticketId) {
+            const ticket = allTickets.find(t => t.id === ticketId);
+            const event = allEvents.find(e => e.id === ticket.eventId);
+            
+            if (!event.waitlist || event.waitlist.length === 0) {
+                alert('No one on the waitlist for this event');
                 return;
             }
 
-            list.innerHTML = userTickets.map(ticket => `
-                <div class="ticket-item">
-                    <div class="ticket-header">
-                        <h3>${ticket.eventTitle}</h3>
-                        <span class="status-badge status-${ticket.status.toLowerCase()}">
-                            ${ticket.status}
-                        </span>
-                    </div>
-                    <div class="ticket-details">
-                        <p><strong>Ticket #:</strong> ${ticket.ticketNumber}</p>
-                        <p><strong>Quantity:</strong> ${ticket.quantity}</p>
-                        <p><strong>Price per ticket:</strong> $${ticket.price}</p>
-                        <p><strong>Total:</strong> $${ticket.price * ticket.quantity}</p>
-                        <p><strong>Date:</strong> ${new Date(ticket.eventDate).toLocaleDateString()}</p>
-                        <p><strong>Location:</strong> ${ticket.eventLocation}</p>
-                        <p><strong>Payment Method:</strong> ${ticket.paymentMethod}</p>
-                        <p><strong>Purchased:</strong> ${new Date(ticket.purchaseDate).toLocaleDateString()}</p>
-                    </div>
-                    ${ticket.status === 'Confirmed' ? `
-                        <button class="btn-danger" onclick="cancelTicket('${ticket.id}')" style="margin-top: 15px;">Cancel Ticket</button>
-                    ` : ''}
-                </div>
-            `).join('');
+            const waitlistUsers = event.waitlist.map(w => w.email).join('\n');
+            const confirm_resale = confirm(
+                `Resell to Organization?\n\nWaitlist Users:\n${waitlistUsers}\n\nClick OK to proceed. New owner will need to confirm ownership change.`
+            );
+
+            if (!confirm_resale) return;
+
+            // Lock ticket during ownership transfer
+            ticket.ownershipPending = true;
+            ticket.resalePendingTo = 'ORGANIZATION';
+            ticket.resaleRequestDate = new Date().toISOString();
+            
+            // Notify first waitlist user
+            const firstWaitlistUser = event.waitlist[0];
+            alert(`Ticket resale initiated!\n\nThe organization will contact ${firstWaitlistUser.email}.\nNew owner must confirm ownership change.`);
+
+            saveToLocalStorage();
+            displayMyTickets();
+        }
+
+        // Transfer Modal
+        function showTransferModal(ticketId) {
+            const ticket = allTickets.find(t => t.id === ticketId);
+            const recipientEmail = prompt('Enter the email of the person you want to transfer this ticket to:');
+
+            if (!recipientEmail) return;
+
+            // Find recipient
+            let users = JSON.parse(localStorage.getItem('users') || '{}');
+            const recipient = users[recipientEmail];
+
+            if (!recipient || recipient.type !== 'user') {
+                alert('User not found or is not a regular user');
+                return;
+            }
+
+            // Lock ticket during transfer
+            ticket.ownershipPending = true;
+            ticket.transferPendingTo = recipient.id;
+            ticket.transferRecipientEmail = recipientEmail;
+            ticket.transferRequestDate = new Date().toISOString();
+
+            alert(`Transfer initiated!\n\nTransfer request sent to ${recipientEmail}.\nThey must confirm ownership change to complete the transfer.`);
+
+            saveToLocalStorage();
+            displayMyTickets();
         }
 
         function cancelTicket(ticketId) {
@@ -1220,13 +1472,71 @@
             const event = allEvents.find(e => e.id === ticket.eventId);
 
             ticket.status = 'Cancelled';
+            ticket.currentOwner = null;
             event.ticketsAvailable += ticket.quantity;
+
+            // Remove from waitlist if cancelled
+            if (event.waitlist && event.waitlist.length > 0) {
+                const waitlistUser = event.waitlist.shift();
+                ticket.currentOwner = waitlistUser.userId;
+                ticket.currentOwnerEmail = waitlistUser.email;
+                ticket.status = 'Confirmed';
+                
+                // Generate new code for transferred ticket
+                ticket.ticketCode = generateTicketCode();
+                ticket.ownershipTransferDate = new Date().toISOString();
+                if (!ticket.resaleHistory) ticket.resaleHistory = [];
+                ticket.resaleHistory.push({
+                    from: 'waitlist',
+                    to: waitlistUser.email,
+                    date: new Date().toISOString(),
+                    newCode: ticket.ticketCode
+                });
+            }
 
             saveToLocalStorage();
             displayMyTickets();
         }
 
-        // Dashboard
+        // Confirm Ownership Change (for transferred/resold tickets)
+        function confirmOwnershipChange(ticketId) {
+            const ticket = allTickets.find(t => t.id === ticketId);
+
+            if (!ticket.ownershipPending) {
+                alert('No pending ownership change for this ticket');
+                return;
+            }
+
+            if (ticket.transferPendingTo) {
+                // Transfer to friend
+                if (ticket.transferPendingTo !== currentUser.id) {
+                    alert('You are not the recipient of this transfer');
+                    return;
+                }
+
+                ticket.currentOwner = currentUser.id;
+                ticket.currentOwnerEmail = currentUser.email;
+                ticket.ticketCode = generateTicketCode();
+                ticket.ownershipPending = false;
+                ticket.transferPendingTo = null;
+                ticket.transferRecipientEmail = null;
+
+                if (!ticket.resaleHistory) ticket.resaleHistory = [];
+                ticket.resaleHistory.push({
+                    from: 'user_transfer',
+                    to: currentUser.email,
+                    date: new Date().toISOString(),
+                    newCode: ticket.ticketCode
+                });
+
+                alert(`✓ Ownership confirmed! Your new ticket code: ${ticket.ticketCode}`);
+            }
+
+            saveToLocalStorage();
+            displayMyTickets();
+        }
+
+        // Dashboard with Waitlist & Resale Management
         function displayDashboard() {
             if (!currentOrganizer) {
                 showSection('login');
@@ -1253,6 +1563,8 @@
                                 <th>Price</th>
                                 <th>Capacity</th>
                                 <th>Available</th>
+                                <th>Waitlist</th>
+                                <th>Resale Requests</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -1260,6 +1572,8 @@
                             ${organizerEvents.map(event => {
                                 const eventTickets = allTickets.filter(t => t.eventId === event.id && t.status === 'Confirmed');
                                 const totalRevenue = eventTickets.reduce((sum, t) => sum + (t.price * t.quantity), 0);
+                                const waitlistCount = event.waitlist ? event.waitlist.length : 0;
+                                const resaleRequests = allTickets.filter(t => t.eventId === event.id && t.resalePendingTo === 'ORGANIZATION');
 
                                 return `
                                     <tr>
@@ -1270,6 +1584,20 @@
                                         <td>$${event.price}</td>
                                         <td>${event.capacity}</td>
                                         <td>${event.ticketsAvailable}</td>
+                                        <td>
+                                            ${waitlistCount > 0 ? `
+                                                <button class="btn-small" style="background-color: #ffc107; color: black;" onclick="showWaitlist('${event.id}')">
+                                                    ${waitlistCount} waiting
+                                                </button>
+                                            ` : '0'}
+                                        </td>
+                                        <td>
+                                            ${resaleRequests.length > 0 ? `
+                                                <button class="btn-small" style="background-color: #ff6b6b;" onclick="showResaleRequests('${event.id}')">
+                                                    ${resaleRequests.length} pending
+                                                </button>
+                                            ` : '0'}
+                                        </td>
                                         <td>
                                             <button class="btn-small btn-delete" onclick="deleteEvent('${event.id}')">Delete</button>
                                         </td>
@@ -1282,6 +1610,66 @@
             `;
 
             container.innerHTML = tableHTML;
+        }
+
+        // Show Waitlist
+        function showWaitlist(eventId) {
+            const event = allEvents.find(e => e.id === eventId);
+            if (!event.waitlist || event.waitlist.length === 0) {
+                alert('No users on waitlist for this event');
+                return;
+            }
+
+            let waitlistInfo = `Waitlist for ${event.title}:\n\n`;
+            event.waitlist.forEach((user, index) => {
+                waitlistInfo += `${index + 1}. ${user.email} - Requested: ${new Date(user.requestDate).toLocaleDateString()} (Qty: ${user.quantity})\n`;
+            });
+
+            alert(waitlistInfo + '\nUsers will be automatically notified if tickets become available.');
+        }
+
+        // Show Resale Requests
+        function showResaleRequests(eventId) {
+            const event = allEvents.find(e => e.id === eventId);
+            const resaleRequests = allTickets.filter(t => t.eventId === eventId && t.resalePendingTo === 'ORGANIZATION');
+
+            if (resaleRequests.length === 0) {
+                alert('No resale requests for this event');
+                return;
+            }
+
+            let requestInfo = `Resale Requests for ${event.title}:\n\n`;
+            resaleRequests.forEach((ticket, index) => {
+                requestInfo += `${index + 1}. Ticket #${ticket.ticketCode}\n   From: ${ticket.currentOwnerEmail}\n   Date: ${new Date(ticket.resaleRequestDate).toLocaleDateString()}\n\n`;
+            });
+
+            const approveResale = confirm(requestInfo + 'Click OK to approve first resale request');
+            
+            if (approveResale && resaleRequests.length > 0) {
+                const firstRequest = resaleRequests[0];
+                const firstWaitlist = event.waitlist[0];
+                
+                if (firstWaitlist) {
+                    firstRequest.currentOwner = firstWaitlist.userId;
+                    firstRequest.currentOwnerEmail = firstWaitlist.email;
+                    firstRequest.ticketCode = generateTicketCode();
+                    firstRequest.resalePendingTo = null;
+                    firstRequest.ownershipPending = false;
+                    
+                    if (!firstRequest.resaleHistory) firstRequest.resaleHistory = [];
+                    firstRequest.resaleHistory.push({
+                        from: 'resale',
+                        to: firstWaitlist.email,
+                        date: new Date().toISOString(),
+                        newCode: firstRequest.ticketCode
+                    });
+                    
+                    event.waitlist.shift();
+                    saveToLocalStorage();
+                    alert(`✓ Resale approved! New owner: ${firstWaitlist.email}\nNew Ticket Code: ${firstRequest.ticketCode}`);
+                    displayDashboard();
+                }
+            }
         }
 
         function toggleCreateForm() {
@@ -1321,7 +1709,8 @@
                 capacity,
                 ticketsAvailable: capacity,
                 price,
-                organizerId: currentOrganizer.id
+                organizerId: currentOrganizer.id,
+                waitlist: []
             };
 
             allEvents.push(newEvent);

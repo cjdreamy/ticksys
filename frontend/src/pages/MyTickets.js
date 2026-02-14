@@ -67,8 +67,8 @@ const MyTickets = () => {
               <div className="ticket-details">
                 <p><strong>Ticket #:</strong> {ticket.ticketNumber}</p>
                 <p><strong>Quantity:</strong> {ticket.quantity}</p>
-                <p><strong>Price per ticket:</strong> ${ticket.price}</p>
-                <p><strong>Total:</strong> ${ticket.price * ticket.quantity}</p>
+                <p><strong>Price per ticket:</strong> KSH {ticket.price}</p>
+                <p><strong>Total:</strong> KSH {ticket.price * ticket.quantity}</p>
                 <p><strong>Date:</strong> {new Date(ticket.event?.startDate).toLocaleDateString()}</p>
                 <p><strong>Location:</strong> {ticket.event?.location}</p>
                 <p><strong>Payment Method:</strong> {ticket.paymentMethod}</p>
